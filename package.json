@@ -1,0 +1,12 @@
+{
+    "name":"paritho.tabex",
+    "title":"TabEx",
+    "description":"Exit (), {}, or [] by pressing tab key. Start/stop with Ctrl-Shift-X",
+    "homepage":"github.com/paritho/tabex",
+    "version":"1.0.0",
+    "author":"Paul Thompson (github.com/paritho)",
+    "license":"MIT",
+    "i18n":"["en"]",
+    "keywords":["exit","tab","auto","complete"]
+    
+}
