@@ -6,7 +6,7 @@
     "version":"1.0.0",
     "author":"Paul Thompson (github.com/paritho)",
     "license":"MIT",
-    "i18n":"["en"]",
+    "i18n":["en"],
     "keywords":["exit","tab","auto","complete"]
     
 }
