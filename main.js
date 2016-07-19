@@ -76,23 +76,29 @@ define(function(require, exports, module){
     // cursor position is between, return an index outside the set.
     // This index is used to "jump" the cursor outside of auto
     // complete brackets, braces, and parenthesis. 
-    function searchStringAndReturnIndex(inputString,cursorPosition){
-        var prergx = /[\(+|\{+|\[+]/g,
-            postrgx = /[\)+|\}+|\]+]/g,
+   function searchStringAndReturnIndex(inputString,cursorPosition){
+        var prergx = /\(+|\{+|\[+/g,
+            postrgx = /\)+|\}+|\]+/g,
             preIndex = 0,
-            postIndex = 0;
+            postIndex = 0,
+            found = inputString.match(prergx) && inputString.match(postrgx);
+        
+        // Lines with white spaces only will cause brackets to crash if we
+        // don't check the string first
+        if(!found) return 0;
+
         // Finds the last occurance of (, [, or { in the input string
         while(prergx.exec(inputString)){
             preIndex = prergx.lastIndex;
         }
-        
+
         // Finds the first occurance of ), ], or } in the string,
         // AFTER the current cursorPosition
         while(postrgx.lastIndex <= cursorPosition) {
             postrgx.exec(inputString);
             postIndex = postrgx.lastIndex;
         }
-        
+
         // Return the index if the cursor is between the (), {}, or []
         // If not, we assume the user wants "tab" to insert a tab, so
         // return 0
