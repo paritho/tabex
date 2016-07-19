@@ -10,5 +10,5 @@ Load through Brackets Extension Manager.
 To start using TabEx, select Use TabEx from the Navigation menu or press Ctrl-Shift-X. Repeat this process to turn TabEx 
 off and use the editor in normal mode.
 
-
+If you switch files you may need to re-start TabEx. 
 
