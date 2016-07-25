@@ -82,8 +82,8 @@ define(function(require, exports, module){
     // This index is used to "jump" the cursor outside of auto
     // complete brackets, braces, and parenthesis. 
    function searchStringAndReturnIndex(inputString,cursorPosition){
-        var prergx = /\(+|\{+|\[+/g,
-            postrgx = /\)+|\}+|\]+/g,
+        var prergx = /\(|\{|\[/g,
+            postrgx = /\)|\}|\]/g,
             preIndex = 0,
             postIndex = 0,
             found = inputString.match(prergx) && inputString.match(postrgx);
