@@ -57,6 +57,11 @@ define(function(require, exports, module){
                 var cursorPos = editor.getCursorPos();
                 var currentLineOfText = document.getLine(cursorPos["line"]);
                 
+                // This is all useless if we are already at the end of the line!
+                if(cursorPos["ch"] === currentLineOfText.length) {
+                    return 0;
+                }
+
                 var newCursorPos = searchStringAndReturnIndex(currentLineOfText,cursorPos["ch"]);
                 
                 // If tab is pressed inside (), {}, or [], we want to disable
