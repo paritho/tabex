@@ -57,6 +57,11 @@ define(function(require, exports, module){
                 var cursorPos = editor.getCursorPos();
                 var currentLineOfText = document.getLine(cursorPos["line"]);
                 
+                // This is all useless if we are already at the end of the line!
+                if(cursorPos["ch"] === currentLineOfText.length) {
+                    return 0;
+                }
+
                 var newCursorPos = searchStringAndReturnIndex(currentLineOfText,cursorPos["ch"]);
                 
                 // If tab is pressed inside (), {}, or [], we want to disable
@@ -77,8 +82,8 @@ define(function(require, exports, module){
     // This index is used to "jump" the cursor outside of auto
     // complete brackets, braces, and parenthesis. 
    function searchStringAndReturnIndex(inputString,cursorPosition){
-        var prergx = /\(+|\{+|\[+/g,
-            postrgx = /\)+|\}+|\]+/g,
+        var prergx = /\(|\{|\[/g,
+            postrgx = /\)|\}|\]/g,
             preIndex = 0,
             postIndex = 0,
             found = inputString.match(prergx) && inputString.match(postrgx);
