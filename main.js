@@ -57,7 +57,7 @@ define(function(require, exports, module){
                 var cursorPos = editor.getCursorPos();
                 var currentLineOfText = document.getLine(cursorPos["line"]);
                 
-                // This is all useless if we are already at the end of the line!
+                // If cursor is at EOL, do nothing
                 if(cursorPos["ch"] === currentLineOfText.length) {
                     return 0;
                 }
