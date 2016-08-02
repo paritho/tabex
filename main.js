@@ -25,7 +25,16 @@ define(function(require, exports, module){
     
     var menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
     menu.addMenuItem(COMMAND_ID,"Ctrl-Shift-X");
-
+    
+    // So that TabEx will work when switching editors or files
+    // we listen for the activeEditorChange. If TabEx is active,
+    // start
+    var editor, tabex;
+    EditorManager.on('activeEditorChange',function(e,gf,lf){
+        editor = gf;
+        if(command.getChecked()) tabex = startTabEx();
+    });
+    
     // Visual display of the menu letting the user know if TabEx
     // is turned on or off
     function menuHandler(){
@@ -33,34 +42,27 @@ define(function(require, exports, module){
             command.setChecked(false);
             return;
         }
-        
-        command.setChecked(true);  
-        var tabex = handleTabEx();
+            command.setChecked(true);  
+            tabex = startTabEx();
     }   
-    
+
     // Sets the keydown listener, gathers line of text when
     // fired. If keydown is a tab, search the line and move
     // cursor if required.
-    function handleTabEx(){
+    function startTabEx(){
         // get editor & document
-        var editor   = EditorManager.getFocusedEditor(),
-            document = DocumentManager.getCurrentDocument();
-            
+        var document = DocumentManager.getCurrentDocument();
+        
         // start keydown event listener
         editor.on("keydown",function(be, e, ke){
             // keycode 9 === "tab"
-            // If the menu item is not checked, tab should
-            // behave normaly. This conditional allows us
-            // to 'turn off' TabEx.
             if(ke.keyCode == 9 && command.getChecked()){ 
-                
+
                 var cursorPos = editor.getCursorPos();
                 var currentLineOfText = document.getLine(cursorPos["line"]);
                 
                 // If cursor is at EOL, do nothing
-                if(cursorPos["ch"] === currentLineOfText.length) {
-                    return 0;
-                }
+                if(cursorPos["ch"] === currentLineOfText.length) return;
 
                 var newCursorPos = searchStringAndReturnIndex(currentLineOfText,cursorPos["ch"]);
                 
@@ -73,43 +75,41 @@ define(function(require, exports, module){
                     ke.preventDefault();
                     editor.setCursorPos(cursorPos["line"],newCursorPos);  
                 }
-            } 
-        });     
+            }   
+        });
+        
     }
 
     // Searches the input string for () {} and []. If found and
     // cursor position is between, return an index outside the set.
     // This index is used to "jump" the cursor outside of auto
     // complete brackets, braces, and parenthesis. 
-   function searchStringAndReturnIndex(inputString,cursorPosition){
+    function searchStringAndReturnIndex(inputString,cursorPosition){
         var prergx = /\(|\{|\[/g,
             postrgx = /\)|\}|\]/g,
             preIndex = 0,
             postIndex = 0,
             found = inputString.match(prergx) && inputString.match(postrgx);
-        
-        // Lines with white spaces only will cause brackets to crash if we
-        // don't check the string first
+            
         if(!found) return 0;
-
-        // Finds the last occurance of (, [, or { in the input string
-        while(prergx.exec(inputString)){
-            preIndex = prergx.lastIndex;
-        }
-
-        // Finds the first occurance of ), ], or } in the string,
-        // AFTER the current cursorPosition
+        
+        postrgx.exec(inputString);
         while(postrgx.lastIndex <= cursorPosition) {
             postrgx.exec(inputString);
-            postIndex = postrgx.lastIndex;
-        }
-
+        }   
+        postIndex = postrgx.lastIndex;
+        
+        while(prergx.exec(inputString)){
+            preIndex = prergx.lastIndex;
+            if(prergx.lastIndex >= cursorPosition) break;
+        }   
+        
         // Return the index if the cursor is between the (), {}, or []
         // If not, we assume the user wants "tab" to insert a tab, so
         // return 0
         if(preIndex <= cursorPosition && postIndex >= cursorPosition) 
             return postIndex;
-        
+             
         return 0;
     }
 
