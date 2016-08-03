@@ -17,7 +17,9 @@ define(function(require, exports, module){
     var CommandManager  = brackets.getModule("command/CommandManager"),
         EditorManager   = brackets.getModule("editor/EditorManager"),
         DocumentManager = brackets.getModule("document/DocumentManager"),
-        Menus           = brackets.getModule("command/Menus");
+        Menus           = brackets.getModule("command/Menus"),
+        App             = brackets.getModule("utils/AppInit"),
+        PreferManager   = brackets.getModule("preferences/PreferencesManager");
     
     var COMMAND_ID = "tabex.startTabEx";    
     CommandManager.register("Use TabEx", COMMAND_ID, menuHandler);
@@ -26,13 +28,22 @@ define(function(require, exports, module){
     var menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
     menu.addMenuItem(COMMAND_ID,"Ctrl-Shift-X");
     
+    var prefs = PreferManager.getExtensionPrefs("tabex");
+    prefs.definePreference("enabled","boolean", false);
+    
+        
+    // Start TabEx when Brackets loads, if the preference is set
+    App.appReady(function(){
+        if(prefs.get('enabled')) startTabEx();
+    });
+    
     // So that TabEx will work when switching editors or files
     // we listen for the activeEditorChange. If TabEx is active,
     // start
-    var editor, tabex;
+    var editor;
     EditorManager.on('activeEditorChange',function(e,gf,lf){
         editor = gf;
-        if(command.getChecked()) tabex = startTabEx();
+        if(command.getChecked()) startTabEx();
     });
     
     // Visual display of the menu letting the user know if TabEx
@@ -40,9 +51,11 @@ define(function(require, exports, module){
     function menuHandler(){
         if(command.getChecked()){
             command.setChecked(false);
+            prefs.set('enabled',false);
             return;
         }
             command.setChecked(true);  
+            prefs.set('enabled',true);
             tabex = startTabEx();
     }   
 
@@ -93,12 +106,14 @@ define(function(require, exports, module){
             
         if(!found) return 0;
         
+        // Find the first occurance of postrgx after the cursorPosition
         postrgx.exec(inputString);
         while(postrgx.lastIndex <= cursorPosition) {
             postrgx.exec(inputString);
         }   
         postIndex = postrgx.lastIndex;
         
+        // Find the last occurance of prergx before the cursorPosition
         while(prergx.exec(inputString)){
             preIndex = prergx.lastIndex;
             if(prergx.lastIndex >= cursorPosition) break;
@@ -113,4 +128,7 @@ define(function(require, exports, module){
         return 0;
     }
 
+    // save the preferences before end
+    prefs.save();
+    
 });
