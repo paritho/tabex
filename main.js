@@ -30,6 +30,13 @@ define(function(require, exports, module){
     var prefs = PreferManager.getExtensionPrefs("tabex");
         prefs.definePreference("enabled","boolean", false);
 
+    var editor;
+    // So that TabEx will work when switching editors or files
+    // we listen for the activeEditorChange. 
+    EditorManager.on('activeEditorChange',function(e,gf,lf){
+        editor = gf;
+        startTabEx();
+    });
     
     // Visual display of the menu letting the user know if TabEx
     // is turned on or off
@@ -49,13 +56,8 @@ define(function(require, exports, module){
     // cursor if required.
     function startTabEx(){
         
-        var editor = EditorManager.getFocusedEditor()
-        // So that TabEx will work when switching editors or files
-        // we listen for the activeEditorChange. 
-        EditorManager.on('activeEditorChange',function(e,gf,lf){
-            editor = gf;
-        });
-        
+        if(!editor) editor = EditorManager.getFocusedEditor();
+                
         // start keydown event listener
         editor.on("keydown",function(be, e, ke){
             // keycode 9 === "tab"
@@ -119,8 +121,11 @@ define(function(require, exports, module){
     }
     
     App.appReady(function(){
-    if(prefs.get('enabled'))  setTimeout(function(){menuHandler();},500);
+        // we have to wait for the editor to be loaded before turning on
+        // tabex
+        if(prefs.get('enabled')) setTimeout(function(){menuHandler();},500);
     });
+    
     // save the preferences before end
     prefs.save();
     
