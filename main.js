@@ -16,9 +16,8 @@ define(function(require, exports, module){
     
     var CommandManager  = brackets.getModule("command/CommandManager"),
         EditorManager   = brackets.getModule("editor/EditorManager"),
-        DocumentManager = brackets.getModule("document/DocumentManager"),
         Menus           = brackets.getModule("command/Menus"),
-        App             = brackets.getModule("utils/AppInit"),
+        App             = brackets.getModule('utils/AppInit'),
         PreferManager   = brackets.getModule("preferences/PreferencesManager");
     
     var COMMAND_ID = "tabex.startTabEx";    
@@ -29,22 +28,8 @@ define(function(require, exports, module){
     menu.addMenuItem(COMMAND_ID,"Ctrl-Shift-X");
     
     var prefs = PreferManager.getExtensionPrefs("tabex");
-    prefs.definePreference("enabled","boolean", false);
-    
-        
-    // Start TabEx when Brackets loads, if the preference is set
-    App.appReady(function(){
-        if(prefs.get('enabled')) startTabEx();
-    });
-    
-    // So that TabEx will work when switching editors or files
-    // we listen for the activeEditorChange. If TabEx is active,
-    // start
-    var editor;
-    EditorManager.on('activeEditorChange',function(e,gf,lf){
-        editor = gf;
-        if(command.getChecked()) startTabEx();
-    });
+        prefs.definePreference("enabled","boolean", false);
+
     
     // Visual display of the menu letting the user know if TabEx
     // is turned on or off
@@ -56,15 +41,20 @@ define(function(require, exports, module){
         }
             command.setChecked(true);  
             prefs.set('enabled',true);
-            tabex = startTabEx();
-    }   
+            startTabEx();
+    }    
 
     // Sets the keydown listener, gathers line of text when
     // fired. If keydown is a tab, search the line and move
     // cursor if required.
     function startTabEx(){
-        // get editor & document
-        var document = DocumentManager.getCurrentDocument();
+        
+        var editor = EditorManager.getFocusedEditor()
+        // So that TabEx will work when switching editors or files
+        // we listen for the activeEditorChange. 
+        EditorManager.on('activeEditorChange',function(e,gf,lf){
+            editor = gf;
+        });
         
         // start keydown event listener
         editor.on("keydown",function(be, e, ke){
@@ -72,7 +62,7 @@ define(function(require, exports, module){
             if(ke.keyCode == 9 && command.getChecked()){ 
 
                 var cursorPos = editor.getCursorPos();
-                var currentLineOfText = document.getLine(cursorPos["line"]);
+                var currentLineOfText = editor. document.getLine(cursorPos["line"]);
                 
                 // If cursor is at EOL, do nothing
                 if(cursorPos["ch"] === currentLineOfText.length) return;
@@ -92,7 +82,7 @@ define(function(require, exports, module){
         });
         
     }
-
+    
     // Searches the input string for () {} and []. If found and
     // cursor position is between, return an index outside the set.
     // This index is used to "jump" the cursor outside of auto
@@ -127,7 +117,10 @@ define(function(require, exports, module){
              
         return 0;
     }
-
+    
+    App.appReady(function(){
+    if(prefs.get('enabled'))  setTimeout(function(){menuHandler();},500);
+    });
     // save the preferences before end
     prefs.save();
     
