@@ -3,7 +3,7 @@
     "title":"TabEx",
     "description":"Exit (), {}, or [] by pressing tab key. Start/stop with Ctrl-Shift-X",
     "homepage":"http://github.com/paritho/tabex",
-    "version":"1.1.4",
+    "version":"1.9.0",
     "author":"Paul Thompson (http://github.com/paritho)",
     "license":"MIT",
     "keywords":["exit","tab","auto","complete"]
