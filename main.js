@@ -35,7 +35,7 @@ define(function(require, exports, module){
     // we listen for the activeEditorChange. 
     EditorManager.on('activeEditorChange',function(e,gf,lf){
         editor = gf;
-        startTabEx();
+        var s = startTabEx();
     });
     
     // Visual display of the menu letting the user know if TabEx
@@ -48,29 +48,31 @@ define(function(require, exports, module){
         }
             command.setChecked(true);  
             prefs.set('enabled',true);
-            startTabEx();
+            var st = startTabEx();
     }    
-
+ 
     // Sets the keydown listener, gathers line of text when
     // fired. If keydown is a tab, search the line and move
     // cursor if required.
     function startTabEx(){
         
         if(!editor) editor = EditorManager.getFocusedEditor();
-                
-        // start keydown event listener
+        
+        // start keydown event listener. be = BracketsEvent,
+        // e = Editor, ke = KeyboardEvent
         editor.on("keydown",function(be, e, ke){
-            // keycode 9 === "tab"
-            if(ke.keyCode == 9 && command.getChecked()){ 
 
-                var cursorPos = editor.getCursorPos();
-                var currentLineOfText = editor. document.getLine(cursorPos["line"]);
-                
+            // keycode 9 === "tab"
+            if(ke.which == 9 && command.getChecked()){ 
+
+                var cursorPos = e.getCursorPos();
+                var currentLineOfText = e.document.getLine(cursorPos["line"]);
+
                 // If cursor is at EOL, do nothing
                 if(cursorPos["ch"] === currentLineOfText.length) return;
 
                 var newCursorPos = searchStringAndReturnIndex(currentLineOfText,cursorPos["ch"]);
-                
+
                 // If tab is pressed inside (), {}, or [], we want to disable
                 // the default nature of the tab key and move the cursor.
                 // This ensures that pressing tab on a line that has (), {}, 
@@ -78,13 +80,14 @@ define(function(require, exports, module){
                 // middle
                 if(newCursorPos){
                     ke.preventDefault();
-                    editor.setCursorPos(cursorPos["line"],newCursorPos);  
+                    e.setCursorPos(cursorPos["line"],newCursorPos);  
                 }
             }   
         });
         
     }
-    
+
+
     // Searches the input string for () {} and []. If found and
     // cursor position is between, return an index outside the set.
     // This index is used to "jump" the cursor outside of auto
@@ -98,32 +101,33 @@ define(function(require, exports, module){
             
         if(!found) return 0;
         
-        // Find the first occurance of postrgx after the cursorPosition
-        postrgx.exec(inputString);
-        while(postrgx.lastIndex <= cursorPosition) {
-            postrgx.exec(inputString);
-        }   
-        postIndex = postrgx.lastIndex;
+        var leftrgx = /\(|\{|\[/g,
+            rightrgx = /\)|\}|\]/g,
+            lResult = leftrgx.exec(inputString),
+            rResult = rightrgx.exec(inputString);
         
-        // Find the last occurance of prergx before the cursorPosition
-        while(prergx.exec(inputString)){
-            preIndex = prergx.lastIndex;
-            if(prergx.lastIndex >= cursorPosition) break;
-        }   
+        if(lResult.index > cursorPosition) return 0;
         
-        // Return the index if the cursor is between the (), {}, or []
-        // If not, we assume the user wants "tab" to insert a tab, so
-        // return 0
-        if(preIndex <= cursorPosition && postIndex >= cursorPosition) 
-            return postIndex;
-             
+        var leftPos = cursorPosition;
+        while(!inputString.charAt(leftPos).match(leftrgx)) {
+            --leftPos;
+        }
+      
+        while(rResult.index < cursorPosition){
+            rResult = rightrgx.exec(inputString);
+        }
+        var rightPos = rightrgx.lastIndex;
+        
+        if(leftPos < cursorPosition && rightPos >= cursorPosition) 
+            return rightPos;
+
         return 0;
     }
-    
-    App.appReady(function(){
+   
+    App.appReady(function(){    
         // we have to wait for the editor to be loaded before turning on
         // tabex
-        if(prefs.get('enabled')) setTimeout(function(){menuHandler();},500);
+        if(prefs.get('enabled')) setTimeout(menuHandler,500);
     });
     
     // save the preferences before end
