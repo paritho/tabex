@@ -87,37 +87,34 @@ define(function(require, exports, module){
         
     }
 
-
     // Searches the input string for () {} and []. If found and
     // cursor position is between, return an index outside the set.
     // This index is used to "jump" the cursor outside of auto
     // complete brackets, braces, and parenthesis. 
     function searchStringAndReturnIndex(inputString,cursorPosition){
-        var prergx = /\(|\{|\[/g,
-            postrgx = /\)|\}|\]/g,
-            preIndex = 0,
-            postIndex = 0,
-            found = inputString.match(prergx) && inputString.match(postrgx);
-            
-        if(!found) return 0;
         
         var leftrgx = /\(|\{|\[/g,
             rightrgx = /\)|\}|\]/g,
             lResult = leftrgx.exec(inputString),
-            rResult = rightrgx.exec(inputString);
+            rResult = rightrgx.exec(inputString),
+            found = inputString.match(prergx) && inputString.match(postrgx);
+            
+        // If there is no match, or the match is beyond the cursor, return
+        if(!found || lResult.index > cursorPosition) return 0;
         
-        if(lResult.index > cursorPosition) return 0;
-        
+        // Find the first match before the cursorPosition
         var leftPos = cursorPosition;
         while(!inputString.charAt(leftPos).match(leftrgx)) {
             --leftPos;
         }
       
+        // Find the first match after the cursorPosition
         while(rResult.index < cursorPosition){
             rResult = rightrgx.exec(inputString);
         }
         var rightPos = rightrgx.lastIndex;
         
+        // Check if the cursor is between the matches
         if(leftPos < cursorPosition && rightPos >= cursorPosition) 
             return rightPos;
 
