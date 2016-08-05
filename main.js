@@ -30,7 +30,7 @@ define(function(require, exports, module){
     var prefs = PreferManager.getExtensionPrefs("tabex");
         prefs.definePreference("enabled","boolean", false);
 
-    var editor;
+    var editor = EditorManager.getFocusedEditor();
     // So that TabEx will work when switching editors or files
     // we listen for the activeEditorChange. 
     EditorManager.on('activeEditorChange',function(e,gf,lf){
@@ -56,7 +56,7 @@ define(function(require, exports, module){
     // cursor if required.
     function startTabEx(){
         
-        if(!editor) editor = EditorManager.getFocusedEditor();
+        if(!editor) return;
         
         // start keydown event listener. be = BracketsEvent,
         // e = Editor, ke = KeyboardEvent
