@@ -97,11 +97,13 @@ define(function(require, exports, module){
             rightrgx = /\)|\}|\]/g,
             lResult = leftrgx.exec(inputString),
             rResult = rightrgx.exec(inputString),
-            found = inputString.match(prergx) && inputString.match(postrgx);
-            
+            found = inputString.match(leftrgx) && inputString.match(rightrgx);
+ 
         // If there is no match, or the match is beyond the cursor, return
-        if(!found || lResult.index > cursorPosition) return 0;
+        if(!found) return 0;
+        if(lResult.index > cursorPosition) return 0;
         
+                
         // Find the first match before the cursorPosition
         var leftPos = cursorPosition;
         while(!inputString.charAt(leftPos).match(leftrgx)) {
@@ -112,11 +114,12 @@ define(function(require, exports, module){
         while(rResult.index < cursorPosition){
             rResult = rightrgx.exec(inputString);
         }
-        var rightPos = rightrgx.lastIndex;
+        var rightPos = rResult.index;
         
         // Check if the cursor is between the matches
-        if(leftPos < cursorPosition && rightPos >= cursorPosition) 
-            return rightPos;
+        if(leftPos < cursorPosition && rightPos >= cursorPosition) {
+            return rightPos+1;
+        }
 
         return 0;
     }
